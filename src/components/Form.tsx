@@ -1,26 +1,70 @@
-
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Button } from "./ui/button";
 
-export default function Form({ }) {
+function getFormUpdater(immerUpdater, formKeys) {
+	return (e) => {
+		immerUpdater(formData => {
+			//get reference to the nested object that holds the data 
+			let keyObject = formKeys.slice(0, -1)
+				.reduce((acc, d) => {
+					return acc[d]
+				}, formData)
+			let finalKey = formKeys[formKeys.length - 1]
+			keyObject[finalKey] = e.target.value
+		})
+	}
+}
+
+function getAddressSectionUpdaters(updateFormData,prefix){
+	return [
+		"name",
+		"email",
+		"country",
+		"city",
+		"postalCode",
+		"streetAddress"
+	]
+	.reduce((acc,d)=>{
+		acc[d] = getFormUpdater(updateFormData, [...prefix, d])
+		return acc
+	}, {})
+}
+
+export default function Form({ formData, updateFormData }) {
+
+	const fromAddressUpdaters = getAddressSectionUpdaters(updateFormData,["fromAddress"]);
+	const toAddressUpdaters = getAddressSectionUpdaters(updateFormData,["toAddress"]);
+
 	return (
 		<div className="border-[1px] border-[#D0D5DD] rounded-3xl p-6 flex flex-col flex-grow-[1]
-		flex-shrink-[1] flex-basis-1 gap-8">
-			<AddressSection billRolePrefix="Company" billHeading="Bill From" />
-			<AddressSection billRolePrefix="Client's" billHeading="Bill To" />
+		flex-shrink-[1] basis-[0] gap-8">
+			<AddressSection billRolePrefix="Company" billHeading="Bill From" 
+				addressData={formData.fromAddress} 
+				addressUpdaters={fromAddressUpdaters} />
+			<AddressSection billRolePrefix="Client's" billHeading="Bill To"
+				addressData={formData.toAddress} 
+				addressUpdaters={toAddressUpdaters}/>
 			<div className="grid grid-cols-2 grid-flow-row gap-4">
 				<div className="col-start-1 col-span-1 row-start-1">
-					<TextInput label="Invoice Date" />
+					<TextInput label="Invoice Date" 
+					updateFunction={getFormUpdater(updateFormData, ['invoiceDate'])}
+					val={formData.invoiceDate}/>
 				</div>
 				<div className="col-start-2 col-span-1 row-start-1">
-					<TextInput label="Payment Terms" />
+					<TextInput label="Payment Terms" 
+					updateFunction={getFormUpdater(updateFormData, ['paymentTerms'])}
+					val={formData.paymentTerms}/>
 				</div>
 				<div className="col-start-1 col-span-2 row-start-2">
-					<TextInput label="Project Description" />
+					<TextInput
+						label="Project Description"
+						updateFunction={getFormUpdater(updateFormData, ['projectDesc'])}
+						val={formData.projectDesc}
+					/>
 				</div>
 			</div>
-			<ItemsList />
+			<ItemsList items={[]} />
 		</div>
 	)
 }
@@ -28,19 +72,24 @@ export default function Form({ }) {
 function TextInput({
 	label,
 	type = "text",
-	placeHolder = ""
+	placeHolder = "",
+	val = "",
+	updateFunction = (e) => { }
 }) {
 	return (
 		<div className="grid w-full items-center gap-1.5">
 			<Label>{label}</Label>
-			<Input type={type} placeholder={placeHolder} />
+			<Input type={type} placeholder={placeHolder} onChange={updateFunction} value={val} className="shadow-[0px_1px_2px_0px_rgba(16,_24,_40,_0.05)]"/>
 		</div>
 	);
 }
 
 function AddressSection({
 	billRolePrefix,
-	billHeading
+	billHeading,
+	addressUpdaters,
+	addressData
+	
 }) {
 
 	return (
@@ -50,22 +99,37 @@ function AddressSection({
 			</h1>
 			<div className="grid grid-cols-6 grid-flow-row gap-4">
 				<div className="col-start-1 col-span-3 row-start-1">
-					<TextInput label={`${billRolePrefix} Name`} />
+					<TextInput
+						label={`${billRolePrefix} Name`}
+						updateFunction={addressUpdaters.name}
+						val={addressData.name}
+					/>
 				</div>
 				<div className="col-start-4 col-span-3 row-start-1">
-					<TextInput label={`${billRolePrefix} Email`} type="email" />
+					<TextInput label={`${billRolePrefix} Email`} type="email"
+						updateFunction={addressUpdaters.email}
+						val={addressData.email}
+					/>
 				</div>
 				<div className="col-start-1 col-span-2 row-start-2">
-					<TextInput label="Country" />
+					<TextInput label="Country"
+						updateFunction={addressUpdaters.country}
+						val={addressData.country} />
 				</div>
 				<div className="col-start-3 col-span-2 row-start-2">
-					<TextInput label="City" />
+					<TextInput label="City"
+						updateFunction={addressUpdaters.city}
+						val={addressData.city} />
 				</div>
 				<div className="col-start-5 col-span-2 row-start-2">
-					<TextInput label="Postal Code" />
+					<TextInput label="Postal Code"
+						updateFunction={addressUpdaters.postalCode}
+						val={addressData.postalCode} />
 				</div>
 				<div className="col-start-1 col-span-6 row-start-3">
-					<TextInput label="Street Address" />
+					<TextInput label="Street Address"
+						updateFunction={addressUpdaters.streetAddress}
+						val={addressData.streetAddress} />
 				</div>
 			</div>
 		</div>
