@@ -16,40 +16,40 @@ export default function Preview({ formData }) {
 						<h2 className="text-[#76787D]">
 							Invoice Date
 						</h2>
-						<h2>
-							{formData.invoiceDate}
+						<h2 className="min-h-[1lh]">
+							{formData.invoiceDate.val}
 						</h2>
 					</div>
 					<div className="flex flex-col col-start-2 col-span-1 row-start-1">
 						<h2 className="text-[#76787D]">
 							Payment Terms
 						</h2>
-						<h2>
-							{formData.paymentTerms}
+						<h2 className="min-h-[1lh]">
+							{formData.paymentTerms.val}
 						</h2>
 					</div>
 					<div className="flex flex-col col-start-1 col-span-1 row-start-2">
 						<h2 className="text-[#76787D]">
 							Billed From
 						</h2>
-						<h2>
-							{formData.fromAddress.name}
+						<h2 className="min-h-[1lh]">
+							{formData.fromAddress.name.val}
 						</h2>
 					</div>
 					<div className="flex flex-col col-start-2 col-span-1 row-start-2">
 						<h2 className="text-[#76787D]">
 							Billed To
 						</h2>
-						<h2>
-							{formData.toAddress.name}
+						<h2 className="min-h-[1lh]">
+							{formData.toAddress.name.val}
 						</h2>
 					</div>
 					<div className="flex flex-col col-start-1 col-span-2 row-start-3">
 						<h2 className="text-[#76787D]">
 							Project Description
 						</h2>
-						<h2>
-							{formData.projectDesc}
+						<h2 className="min-h-[1lh]">
+							{formData.projectDesc.val}
 						</h2>
 					</div>
 					<div className="flex col-start-1 col-span-2 row-start-4">
