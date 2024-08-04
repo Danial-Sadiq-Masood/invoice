@@ -6,6 +6,8 @@ import Preview from "@/components/Preview"
 import { useImmer } from "use-immer";
 import { InputState } from "@/enums";
 import { getInitFormElementState, validateEmail } from "@/formUtils"
+import { useState } from "react";
+import { useToast } from "@/components/ui/use-toast"
 
 function getInitialFormModel() {
   return {
@@ -32,10 +34,19 @@ function getInitialFormModel() {
   }
 }
 
+function checkFormValid(data) {
+  
+}
 
 export default function Home() {
 
   const [formData, updateFormData] = useImmer(getInitialFormModel())
+  const [savingForm, updateSavingForm] = useState(false)
+  const { toast } = useToast()
+
+  const saveForm = () => {
+
+  }
 
   return (
     <main className="px-8 py-6 flex flex-col gap-8">
@@ -53,7 +64,7 @@ export default function Home() {
           <Button variant="outline"
             onClick={() => {
               updateFormData(
-                draft => 
+                draft =>
                   draft = Object.assign(draft, getInitialFormModel())
               )
             }}

@@ -34,7 +34,6 @@ function getFormUpdater(immerUpdater, formKeys) {
 }
 
 function setFormElementValidationStatus(formModelEl) {
-	console.log(formModelEl)
 	const validationStatus = formModelEl.validationFunctions
 		.map((d) => {
 			return d(formModelEl.val)
