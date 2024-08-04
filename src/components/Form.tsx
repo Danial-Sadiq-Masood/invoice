@@ -14,7 +14,11 @@ import {
 import { Trash2 } from "lucide-react"
 import { InputState } from "@/enums";
 
-import { createFormValidationStatus, getInitFormElementState } from "@/formUtils";
+import {
+	createFormValidationStatus,
+	getInitFormElementState,
+	setFormElementValidationStatus
+} from "@/formUtils";
 
 function getFormUpdater(immerUpdater, formKeys) {
 	return (val) => {
@@ -33,20 +37,6 @@ function getFormUpdater(immerUpdater, formKeys) {
 	}
 }
 
-function setFormElementValidationStatus(formModelEl) {
-	const validationStatus = formModelEl.validationFunctions
-		.map((d) => {
-			return d(formModelEl.val)
-		})
-
-	const invalidStatus = validationStatus.find(d => d.status === InputState.INVALID)
-
-	if (invalidStatus) {
-		formModelEl.valid = invalidStatus
-	} else {
-		formModelEl.valid = createFormValidationStatus(InputState.VALID)
-	}
-}
 
 function getTextInputUpdater(immerUpdater, formKeys) {
 	const updaterFunction = getFormUpdater(immerUpdater, formKeys)
@@ -84,12 +74,13 @@ function getAddressSectionUpdaters(updateFormData, prefix) {
 function addRow(updateFormData) {
 	updateFormData(
 		draft => {
-			draft.items.push({
-				key: crypto.randomUUID(),
+			const key = crypto.randomUUID()
+			draft.items[key] = {
+				key: key,
 				name: getInitFormElementState(),
 				qty: getInitFormElementState(),
 				price: getInitFormElementState(),
-			})
+			}
 		}
 	)
 }
@@ -98,21 +89,13 @@ function removeRow(updateFormData, key) {
 	updateFormData(
 		draft => {
 			console.log(key)
-			draft.items = draft.items.filter(d => d.key != key)
+			delete draft.items[key]
 		}
 	)
 }
 
 function getRowTextHandler(updateFormData, rowKey, dataKey) {
-	return (val) => {
-		updateFormData(
-			draft => {
-				const index = draft.items.findIndex((d) => d.key === rowKey);
-				draft.items[index][dataKey].val = val
-				setFormElementValidationStatus(draft.items[index][dataKey])
-			}
-		)
-	}
+	return getTextInputUpdater(updateFormData, ['items', rowKey, dataKey])
 }
 
 export default function Form({ formData, updateFormData }) {
@@ -270,18 +253,21 @@ function ItemsList({ items, addRow, removeRow, formData, updateFormData }) {
 			</h1>
 			<div className="flex flex-col gap-4">
 				{/*row*/}
-				{items.map(d =>
-					<ItemRow
-						key={d.key}
-						id={d.key}
-						removeRow={removeRow}
-						name={d.name}
-						nameHandler={getRowTextHandler(updateFormData, d.key, 'name')}
-						qty={d.qty}
-						qtyHandler={getRowTextHandler(updateFormData, d.key, 'qty')}
-						price={d.price}
-						priceHandler={getRowTextHandler(updateFormData, d.key, 'price')}
-					/>
+				{(Object.keys(items)).map(
+					key => {
+						const d = items[key]
+						return (<ItemRow
+							key={d.key}
+							id={d.key}
+							removeRow={removeRow}
+							name={d.name}
+							nameHandler={getRowTextHandler(updateFormData, d.key, 'name')}
+							qty={d.qty}
+							qtyHandler={getRowTextHandler(updateFormData, d.key, 'qty')}
+							price={d.price}
+							priceHandler={getRowTextHandler(updateFormData, d.key, 'price')}
+						/>)
+					}
 				)}
 				<div>
 					<Button onClick={addRow} className="bg-[#7F56D9] w-full">Add New Item</Button>
@@ -312,20 +298,20 @@ function ItemRow({
 		<div className="flex gap-4">
 			<div className="basis-0 flex-shrink-[1] flex-grow-[2]">
 				<TextInput label="Item Name"
-					updateFunction={(e) => nameHandler(e.target.value)}
+					updateFunction={nameHandler}
 					val={name.val}
 					error={name.valid.message}
 				/>
 			</div>
-			<div className="basis-0 flex-shrink-[1] flex-grow-[1]">
+			<div className="basis-0 flex-sshrink-[1] flex-grow-[1]">
 				<TextInput label="Qty."
-					updateFunction={(e) => qtyHandler(e.target.value)}
+					updateFunction={qtyHandler}
 					val={qty.val}
 				/>
 			</div>
 			<div className="basis-0 flex-shrink-[1] flex-grow-[1]">
 				<TextInput label="Price"
-					updateFunction={(e) => priceHandler(e.target.value)}
+					updateFunction={priceHandler}
 					val={price.val}
 				/>
 			</div>

@@ -5,33 +5,39 @@ import Form from "@/components/Form"
 import Preview from "@/components/Preview"
 import { useImmer } from "use-immer";
 import { InputState } from "@/enums";
-import { getInitFormElementState, validateEmail } from "@/formUtils"
+import { 
+  getInitFormElementState, 
+  validateEmail,
+  setFormElementValidationStatus,
+  FormModelElemTypes,
+  createFormModelElement
+ } from "@/formUtils"
 import { useState } from "react";
 import { useToast } from "@/components/ui/use-toast"
 
 function getInitialFormModel() {
-  return {
-    fromAddress: {
+  return createFormModelElement({
+    fromAddress: createFormModelElement({
       name: getInitFormElementState(),
       email: getInitFormElementState([validateEmail]),
       country: getInitFormElementState(),
       city: getInitFormElementState(),
       postalCode: getInitFormElementState(),
       streetAddress: getInitFormElementState()
-    },
-    toAddress: {
+    }, FormModelElemTypes.FORM_SECTION),
+    toAddress: createFormModelElement({
       name: getInitFormElementState(),
       email: getInitFormElementState(),
       country: getInitFormElementState(),
       city: getInitFormElementState(),
       postalCode: getInitFormElementState(),
       streetAddress: getInitFormElementState()
-    },
+    }, FormModelElemTypes.FORM_SECTION),
     invoiceDate: getInitFormElementState(),
     projectDesc: getInitFormElementState(),
     paymentTerms: getInitFormElementState(),
-    items: []
-  }
+    items: createFormModelElement({}, FormModelElemTypes.FORM_SECTION)
+  }, FormModelElemTypes.FORM_SECTION)
 }
 
 function checkFormValid(data) {
