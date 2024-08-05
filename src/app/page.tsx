@@ -5,15 +5,18 @@ import Form from "@/components/Form"
 import Preview from "@/components/Preview"
 import { useImmer } from "use-immer";
 import { InputState } from "@/enums";
-import { 
-  getInitFormElementState, 
+import {
+  getInitFormElementState,
   validateEmail,
   setFormElementValidationStatus,
   FormModelElemTypes,
-  createFormModelElement
- } from "@/formUtils"
-import { useState } from "react";
+  createFormModelElement,
+  checkFormQuestionValid
+} from "@/formUtils"
+import { useEffect, useState } from "react";
 import { useToast } from "@/components/ui/use-toast"
+import { Loader2 } from "lucide-react"
+
 
 function getInitialFormModel() {
   return createFormModelElement({
@@ -40,18 +43,71 @@ function getInitialFormModel() {
   }, FormModelElemTypes.FORM_SECTION)
 }
 
-function checkFormValid(data) {
-  
+function updateFormValidModel(data) {
+  if (data.formModelElemType == FormModelElemTypes.QUESTION) {
+    setFormElementValidationStatus(data)
+  } else if (data.formModelElemType == FormModelElemTypes.FORM_SECTION) {
+    Object.keys(data)
+      .filter(d => data[d].formModelElemType !== undefined)
+      .map(
+        d => updateFormValidModel(data[d])
+      )
+      .every(d => d)
+  }
+  //console.log(data)
+  //throw Error('checkFormValid called with no Form Elem Type')
 }
+
+function checkFormValid(data) {
+  console.log(data)
+  if (data.formModelElemType == FormModelElemTypes.QUESTION) {
+    return checkFormQuestionValid(data)
+  } else if (data.formModelElemType == FormModelElemTypes.FORM_SECTION) {
+    return Object.keys(data)
+      .filter(d => data[d].formModelElemType !== undefined)
+      .map(
+        d => checkFormValid(data[d])
+      )
+      .every(d => d)
+  }
+  //console.log(data)
+  throw Error('checkFormValid called with no Form Elem Type')
+}
+
+window.checkFormValid = checkFormValid
 
 export default function Home() {
 
   const [formData, updateFormData] = useImmer(getInitialFormModel())
-  const [savingForm, updateSavingForm] = useState(false)
+  window.formData = formData;
+  const [savingForm, setSavingForm] = useState(false)
   const { toast } = useToast()
 
-  const saveForm = () => {
+  const checkValid = () => {
+    updateFormData(draft => updateFormValidModel(draft))
 
+  };
+
+  const saveForm = () => {
+    updateFormData(draft => updateFormValidModel(draft))
+
+    const valid = checkFormValid(formData)
+    console.log(valid)
+    if (valid) {
+      setSavingForm(true)
+      setTimeout(() => {
+        setSavingForm(false)
+        toast({
+          title: "Form Saved Successfully",
+          duration: 3000
+        })
+      }, 3000)
+    } else {
+      toast({
+        title: "Errors in Form",
+        duration: 3000
+      })
+    }
   }
 
   return (
@@ -77,7 +133,14 @@ export default function Home() {
           >
             Reset
           </Button>
-          <Button className="bg-[#7F56D9]">Save</Button>
+          <Button disabled={savingForm} onClick={saveForm} className="bg-[#7F56D9]">
+            {savingForm ?
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              :
+              <></>
+            }
+            Save
+          </Button>
         </div>
       </div>
       <div className="flex w-full gap-6">

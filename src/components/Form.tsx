@@ -11,13 +11,15 @@ import {
 	SelectValue,
 } from "@/components/ui/select";
 
-import { Trash2 } from "lucide-react"
+import { Plus, Trash2 } from "lucide-react"
 import { InputState } from "@/enums";
 
 import {
 	createFormValidationStatus,
+	FormModelElemTypes,
 	getInitFormElementState,
-	setFormElementValidationStatus
+	setFormElementValidationStatus,
+	createFormModelElement
 } from "@/formUtils";
 
 function getFormUpdater(immerUpdater, formKeys) {
@@ -75,12 +77,12 @@ function addRow(updateFormData) {
 	updateFormData(
 		draft => {
 			const key = crypto.randomUUID()
-			draft.items[key] = {
+			draft.items[key] = createFormModelElement({
 				key: key,
 				name: getInitFormElementState(),
 				qty: getInitFormElementState(),
 				price: getInitFormElementState(),
-			}
+			}, FormModelElemTypes.FORM_SECTION)
 		}
 	)
 }
@@ -245,7 +247,8 @@ function AddressSection({
 	)
 }
 
-function ItemsList({ items, addRow, removeRow, formData, updateFormData }) {
+function ItemsList({ items, addRow, removeRow, updateFormData }) {
+
 	return (
 		<div className="flex flex-col gap-6">
 			<h1 className="font-semibold text-2xl">
@@ -253,24 +256,29 @@ function ItemsList({ items, addRow, removeRow, formData, updateFormData }) {
 			</h1>
 			<div className="flex flex-col gap-4">
 				{/*row*/}
-				{(Object.keys(items)).map(
-					key => {
-						const d = items[key]
-						return (<ItemRow
-							key={d.key}
-							id={d.key}
-							removeRow={removeRow}
-							name={d.name}
-							nameHandler={getRowTextHandler(updateFormData, d.key, 'name')}
-							qty={d.qty}
-							qtyHandler={getRowTextHandler(updateFormData, d.key, 'qty')}
-							price={d.price}
-							priceHandler={getRowTextHandler(updateFormData, d.key, 'price')}
-						/>)
-					}
-				)}
+				{(Object.keys(items))
+					.filter(d => items[d].formModelElemType !== undefined)
+					.map(
+						key => {
+							const d = items[key]
+							console.log(d);
+							return (<ItemRow
+								key={d.key}
+								id={d.key}
+								removeRow={removeRow}
+								name={d.name}
+								nameHandler={getRowTextHandler(updateFormData, d.key, 'name')}
+								qty={d.qty}
+								qtyHandler={getRowTextHandler(updateFormData, d.key, 'qty')}
+								price={d.price}
+								priceHandler={getRowTextHandler(updateFormData, d.key, 'price')}
+							/>)
+						}
+					)}
 				<div>
-					<Button onClick={addRow} className="bg-[#7F56D9] w-full">Add New Item</Button>
+					<Button onClick={addRow} className="bg-[#7F56D9] w-full">
+						<Plus className="text-white w-4 h-4"/> Add New Item
+					</Button>
 				</div>
 			</div>
 		</div>
@@ -307,12 +315,14 @@ function ItemRow({
 				<TextInput label="Qty."
 					updateFunction={qtyHandler}
 					val={qty.val}
+					error={qty.valid.message}
 				/>
 			</div>
 			<div className="basis-0 flex-shrink-[1] flex-grow-[1]">
 				<TextInput label="Price"
 					updateFunction={priceHandler}
 					val={price.val}
+					error={qty.valid.message}
 				/>
 			</div>
 			<div className="basis-0 flex-shrink-[1] flex-grow-[1]">
@@ -347,7 +357,7 @@ function SelectInput({
 					<SelectGroup>
 						{
 							options.map((d) =>
-								<SelectItem value={d}>{d}</SelectItem>
+								<SelectItem key={d} value={d}>{d}</SelectItem>
 							)
 						}
 					</SelectGroup>

@@ -61,3 +61,14 @@ export function setFormElementValidationStatus(formModelEl) {
     formModelEl.valid = createFormValidationStatus(InputState.VALID)
   }
 }
+
+export function checkFormQuestionValid(formModelEl) {
+  const validationStatus = formModelEl.validationFunctions
+    .map((d) => {
+      return d(formModelEl.val)
+    })
+
+  const invalidStatus = validationStatus.find(d => d.status === InputState.INVALID)
+  
+  return invalidStatus ? false : true
+}
